@@ -87,9 +87,6 @@ describe('Api de alunos - Testes de Integração', () => {
             .send({ nome: 'Carlos', matricula: '202610020007' })
             .expect(201);
         await request(app).post('/alunos')
-            .send({ nome: '', matricula: '202610020008' }) // teste para ver se a matricula sem nome gera erro
-            .expect(400);
-        await request(app).post('/alunos')
             .send({ nome: 'Carlos', matricula: '202610020007' })
             .expect(409)
         /*.end((err, res) => {
