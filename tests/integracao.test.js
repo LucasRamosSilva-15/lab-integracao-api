@@ -33,11 +33,23 @@ describe('Api de alunos - Testes de Integração', () => {
 
     //     });
 
-    it('deve verificar se a criação de um aluno está funcionando ', async () => {
+    it('deve validar o contrato HTTP e deve verificar se a criação de um aluno está funcionando ', async () => {
         const resposta = await request(app).post('/alunos')
             .send({ nome: 'João', matricula: '202610020005' });
         expect(resposta.status).toBe(201);
         expect(resposta.body).toHaveProperty('id');
+
+        const alunoNoBanco = await new Promise((resolve, reject) => {
+            const query = 'SELECT * FROM alunos WHERE matricula = ?';
+            db.get(query, ['202610020005'], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            })
+        })
+        expect(alunoNoBanco).toBeDefined();
+        expect(alunoNoBanco.nome).toBe('João');
+        expect(alunoNoBanco.matricula).toBe('202610020005');
+
         // expect(resposta.body).toHaveProperty('nome', 'João');
         // expect(resposta.body).toHaveProperty('matricula', '202610020005');
 
@@ -50,7 +62,7 @@ describe('Api de alunos - Testes de Integração', () => {
         });
         */
     });
-    it('deve validar o contrato HTTP', (done) => {
+    /* it('deve validar o contrato HTTP', (done) => {
         request(app).post('/alunos')
             .send({ nome: 'Maria', matricula: '202610020006' })
             .expect(201)
@@ -58,8 +70,19 @@ describe('Api de alunos - Testes de Integração', () => {
                 if (err) return done(err);
                 done();
             });
+    });*/
+    it('deve retornar um erro 400 se os dados estiverem incompletos', async () => {
+        const resposta = await request(app).post('/alunos')
+            .send({ nome: 'Sem matricula' })
+
+        expect(resposta.status).toBe(400);
+        expect(resposta.body).toHaveProperty('erro', 'Dados incompletos');
+
     });
+
+
     it('Validação de Efeito Colateral, verificar duplicidade', async () => {
+
         await request(app).post('/alunos')
             .send({ nome: 'Carlos', matricula: '202610020007' })
             .expect(201);
